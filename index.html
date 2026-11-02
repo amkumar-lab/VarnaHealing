@@ -95,6 +95,12 @@
     background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238A776C' stroke-width='1.6' fill='none'/%3E%3C/svg%3E") no-repeat right 12px center; }
   input[type=range] { accent-color:var(--maroon); width:120px; }
   input[type=checkbox] { accent-color:var(--maroon); width:18px; height:18px; }
+  .from-image { display:flex; flex-wrap:wrap; align-items:center; gap:10px; margin-bottom:12px;
+    padding:12px; border:1px dashed #E2CDB2; border-radius:14px; background:#FFFBF5; }
+  .from-image .filebtn, .from-image .cam-btn { flex:1 1 130px; justify-content:center; font-weight:500; color:var(--maroon); }
+  .from-image small { flex-basis:100%; color:var(--muted); font-size:12.5px; }
+  #imgTools { display:flex; flex-wrap:wrap; align-items:center; gap:10px; }
+  #imgTools[hidden] { display:none; }
   .filebtn { display:inline-flex; align-items:center; gap:8px; position:relative; overflow:hidden; }
   .filebtn input { position:absolute; inset:0; opacity:0; cursor:pointer; }
   label.inline { display:inline-flex; align-items:center; gap:8px; font-size:13.5px; color:var(--ink); }
@@ -146,6 +152,27 @@
   .actions button { width:100%; }
   .tip { font-size:12.5px; color:var(--muted); margin-top:10px; text-align:center; }
 
+  .cam-btn { color:var(--maroon); font-weight:500; }
+  .cam {
+    position:fixed; inset:0; z-index:20; display:grid; place-items:center;
+    background:rgba(30,12,10,.82); backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px);
+    padding:env(safe-area-inset-top) 12px env(safe-area-inset-bottom);
+  }
+  .cam[hidden] { display:none; }
+  .cam-box { width:min(560px,100%); display:flex; flex-direction:column; gap:14px; }
+  .cam-title { color:#F7E7CF; text-align:center; font-family:'Cormorant Garamond',serif; font-size:22px; font-weight:600; }
+  .cam-view { position:relative; border-radius:18px; overflow:hidden; background:#000; box-shadow:0 0 0 1px rgba(201,162,75,.4); }
+  .cam-view video { display:block; width:100%; max-height:70vh; object-fit:cover; }
+  .cam-view video.mirror { transform:scaleX(-1); }
+  .cam-guide { position:absolute; inset:14% 8%; border:2px dashed rgba(247,231,207,.75); border-radius:12px; pointer-events:none; }
+  .cam-guide[hidden] { display:none; }
+  .cam-bar { display:flex; justify-content:space-between; align-items:center; padding:0 18px; }
+  .cam-round { width:52px; height:52px; border-radius:50%; padding:0; font-size:20px;
+    background:rgba(255,255,255,.12); color:#fff; border:1px solid rgba(255,255,255,.25); }
+  .cam-round:hover { background:rgba(255,255,255,.2); }
+  .shutter { width:74px; height:74px; border-radius:50%; padding:0; background:#fff;
+    border:5px solid var(--gold); box-shadow:0 0 0 4px rgba(255,255,255,.25); }
+  .shutter:hover { background:#FFF4E2; }
   footer { text-align:center; color:var(--muted); font-size:12px; padding:0 16px calc(24px + env(safe-area-inset-bottom)); }
 
   #fx { position:fixed; inset:0; width:100vw; height:100vh; max-width:none; pointer-events:none; z-index:10; background:transparent; border:none; border-radius:0; }
@@ -156,7 +183,7 @@
     input[type=range] { width:100%; }
   }
   @media print {
-    header, footer, section.tracer, .row, .bar, .counter, .actions, .tip, #fx { display:none !important; }
+    header, footer, section.tracer, .cam, .row, .bar, .counter, .actions, .tip, #fx { display:none !important; }
     body { background:#fff; } main { padding:0; display:block; }
     section.card { box-shadow:none; padding:0; border:none; }
     .photo-wrap { border:none; } #photo { width:100%; }
@@ -184,7 +211,7 @@
   <section class="card tracer">
     <div class="step-head">
       <span class="step-num">1</span>
-      <h2>Choose &amp; trace<small>Tap a mantra, type your own, or upload a word image</small></h2>
+      <h2>Choose &amp; trace<small>Tap a mantra, type your own, or trace from an image</small></h2>
     </div>
 
     <div class="presets" id="presets" role="group" aria-label="Mantras"></div>
@@ -194,8 +221,18 @@
       <button id="useCustom" class="primary">Use</button>
     </div>
 
+    <div class="from-image">
+      <label class="filebtn">🖼️ Upload image<input type="file" id="wordFile" accept="image/*"></label>
+      <button id="camWord" class="cam-btn">📸 Camera</button>
+      <div id="imgTools" hidden>
+        <label class="inline">Ink sensitivity <input type="range" id="thresh" min="20" max="200" value="100"></label>
+        <button id="backToText" class="ghost">✕ Back to text</button>
+      </div>
+      <small>Upload or snap a written/printed mantra — plain paper, good light, fill the frame.</small>
+    </div>
+
     <details class="more">
-      <summary>Letter style, image &amp; sound</summary>
+      <summary>Letter style &amp; sound</summary>
       <div class="more-body">
         <label class="stack">Font
           <select id="font">
@@ -215,12 +252,6 @@
           </select>
         </label>
         <label class="stack">Pen size <input type="range" id="pen" min="8" max="40" value="20"></label>
-        <div class="stack full">Word image (any colour on a plain or transparent background)
-          <div class="row" style="margin:0">
-            <label class="filebtn">🖼️ Upload word image<input type="file" id="wordFile" accept="image/*"></label>
-            <label class="inline">Sensitivity <input type="range" id="thresh" min="20" max="200" value="80"></label>
-          </div>
-        </div>
         <div class="stack full">Win sound
           <div class="row" style="margin:0">
             <label class="inline"><input type="checkbox" id="sound" checked> On</label>
@@ -256,7 +287,8 @@
     </div>
 
     <div class="row">
-      <label class="filebtn primary" style="background:var(--maroon);color:#FBE9D0;border-color:var(--maroon);font-weight:600">📷 Upload photo<input type="file" id="file" accept="image/*"></label>
+      <label class="filebtn primary" style="flex:1 1 140px;justify-content:center;background:var(--maroon);color:#FBE9D0;border-color:var(--maroon);font-weight:600">🖼️ Upload photo<input type="file" id="file" accept="image/*"></label>
+      <button id="camPhoto" class="cam-btn" style="flex:1 1 140px">📸 Take photo</button>
     </div>
 
     <div class="photo-wrap"><canvas id="photo" width="900" height="600"></canvas></div>
@@ -271,6 +303,18 @@
   </section>
 </main>
 <footer>Trace slowly, with breath and intention. 🙏</footer>
+<div id="cam" class="cam" hidden role="dialog" aria-label="Camera">
+  <div class="cam-box">
+    <div class="cam-title" id="camTitle">Take a photo</div>
+    <div class="cam-view"><video id="camVideo" playsinline autoplay muted></video><div class="cam-guide" id="camGuide"></div></div>
+    <div class="cam-bar">
+      <button id="camClose" class="cam-round" aria-label="Close">✕</button>
+      <button id="camShot" class="shutter" aria-label="Take photo"></button>
+      <button id="camFlip" class="cam-round" aria-label="Switch camera">🔄</button>
+    </div>
+  </div>
+</div>
+<input type="file" id="camFallback" accept="image/*" capture="environment" hidden>
 <canvas id="fx"></canvas>
 
 <script>
@@ -298,41 +342,163 @@ let shapeImg = null;     // uploaded word image (null = use typed text)
 let bbox = { x: 0, y: 0, w: W, h: H };
 const outline = mk(W, H);
 
+// bounding box of all non-transparent pixels (null if empty)
+function inkBox(ctx, w, h) {
+  const d = ctx.getImageData(0, 0, w, h).data;
+  let x0 = w, y0 = h, x1 = -1, y1 = -1;
+  for (let y = 0; y < h; y++) {
+    const row = y * w;
+    for (let x = 0; x < w; x++) if (d[(row + x) * 4 + 3] > 20) {
+      if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; y1 = y;
+    }
+  }
+  return x1 < 0 ? null : { x: x0, y: y0, w: x1 - x0 + 1, h: y1 - y0 + 1 };
+}
+
+// ---- turn a photo/scan of a mantra into a clean ink mask ----
+// 1. estimate the paper colour locally (handles shadows and uneven light)
+// 2. pick the ink/paper cut-off automatically (Otsu), nudged by the slider
+// 3. drop specks of dust/noise, crop to the writing
+function extractInk(im) {
+  const MAX = 1000, s = Math.min(1, MAX / Math.max(im.width, im.height));
+  const w = Math.max(1, Math.round(im.width * s)), h = Math.max(1, Math.round(im.height * s));
+  const src = mk(w, h), sc = src.getContext('2d', { willReadFrequently: true });
+  sc.drawImage(im, 0, 0, w, h);
+  const d = sc.getImageData(0, 0, w, h).data, N = w * h;
+
+  let transparent = 0;
+  for (let i = 0; i < N; i++) if (d[i * 4 + 3] < 20) transparent++;
+  const useAlpha = transparent > N * 0.05;
+
+  const on = new Uint8Array(N);
+  if (useAlpha) {
+    for (let i = 0; i < N; i++) on[i] = d[i * 4 + 3] > 128 ? 1 : 0;
+  } else {
+    // local paper colour: in each block take the average of its lightest quarter of
+    // pixels (so the writing itself can't darken the estimate), let blocks borrow
+    // from lighter neighbours (blocks fully covered by thick ink), then smooth.
+    const B = Math.max(8, Math.round(Math.max(w, h) / 30));
+    const bw = Math.ceil(w / B), bh = Math.ceil(h / B);
+    const blk = new Float32Array(bw * bh * 4);
+    for (let by = 0; by < bh; by++) for (let bx = 0; bx < bw; bx++) {
+      const lh = new Uint32Array(256); let n = 0;
+      const x1 = Math.min(w, (bx + 1) * B), y1 = Math.min(h, (by + 1) * B);
+      for (let y = by * B; y < y1; y++) for (let x = bx * B; x < x1; x++) {
+        const q = (y * w + x) * 4; lh[(d[q] * 3 + d[q + 1] * 6 + d[q + 2]) / 10 | 0]++; n++;
+      }
+      let acc = 0, cut = 255; for (; cut > 0; cut--) { acc += lh[cut]; if (acc >= n * 0.25) break; }
+      let r = 0, g = 0, bb = 0, m = 0;
+      for (let y = by * B; y < y1; y++) for (let x = bx * B; x < x1; x++) {
+        const q = (y * w + x) * 4;
+        if (((d[q] * 3 + d[q + 1] * 6 + d[q + 2]) / 10 | 0) >= cut) { r += d[q]; g += d[q + 1]; bb += d[q + 2]; m++; }
+      }
+      const o = (by * bw + bx) * 4; m = m || 1;
+      blk[o] = r / m; blk[o + 1] = g / m; blk[o + 2] = bb / m; blk[o + 3] = (r * 3 + g * 6 + bb) / 10 / m;
+    }
+    const small = mk(bw, bh), smc = small.getContext('2d'), sd = smc.createImageData(bw, bh);
+    for (let by = 0; by < bh; by++) for (let bx = 0; bx < bw; bx++) {
+      let bestO = (by * bw + bx) * 4;
+      for (let yy = Math.max(0, by - 1); yy <= Math.min(bh - 1, by + 1); yy++)
+        for (let xx = Math.max(0, bx - 1); xx <= Math.min(bw - 1, bx + 1); xx++) {
+          const o = (yy * bw + xx) * 4; if (blk[o + 3] > blk[bestO + 3]) bestO = o;
+        }
+      const o = (by * bw + bx) * 4;
+      sd.data[o] = blk[bestO]; sd.data[o + 1] = blk[bestO + 1]; sd.data[o + 2] = blk[bestO + 2]; sd.data[o + 3] = 255;
+    }
+    smc.putImageData(sd, 0, 0);
+    const bgc = mk(w, h), bgx = bgc.getContext('2d', { willReadFrequently: true });
+    bgx.imageSmoothingEnabled = true; bgx.imageSmoothingQuality = 'high';
+    bgx.drawImage(small, 0, 0, w, h);
+    const bg = bgx.getImageData(0, 0, w, h).data;
+
+    // global paper colour from the border (median-ish via average of brightest half)
+    const diff = new Float32Array(N), hist = new Uint32Array(256);
+    for (let i = 0; i < N; i++) {
+      const p = i * 4;
+      const dl = Math.abs(d[p] - bg[p]) + Math.abs(d[p + 1] - bg[p + 1]) + Math.abs(d[p + 2] - bg[p + 2]);
+      diff[i] = dl;
+      hist[Math.min(255, dl >> 1)]++;
+    }
+    // Otsu threshold on the difference histogram
+    let sum = 0; for (let t = 0; t < 256; t++) sum += t * hist[t];
+    let sumB = 0, wB = 0, best = 0, otsu = 20;
+    for (let t = 0; t < 256; t++) {
+      wB += hist[t]; if (!wB) continue;
+      const wF = N - wB; if (!wF) break;
+      sumB += t * hist[t];
+      const mB = sumB / wB, mF = (sum - sumB) / wF, between = wB * wF * (mB - mF) ** 2;
+      if (between > best) { best = between; otsu = t; }
+    }
+    const sens = +$('thresh').value / 100;              // 1 = automatic
+    const cut = Math.max(12, (otsu * 2) / sens);
+    for (let i = 0; i < N; i++) on[i] = diff[i] > cut ? 1 : 0;
+  }
+
+  // remove dust/noise specks, but keep real marks like ं and ः:
+  // a piece is noise only if it's tiny compared with the biggest letter stroke
+  const label = new Int32Array(N), stack = new Int32Array(N), sizes = [0];
+  for (let i = 0; i < N; i++) {
+    if (!on[i] || label[i]) continue;
+    const id = sizes.length; let top = 0, size = 0; stack[top++] = i; label[i] = id;
+    while (top) {
+      const j = stack[--top]; size++;
+      const x = j % w, y = (j / w) | 0;
+      if (x > 0 && on[j - 1] && !label[j - 1]) { label[j - 1] = id; stack[top++] = j - 1; }
+      if (x < w - 1 && on[j + 1] && !label[j + 1]) { label[j + 1] = id; stack[top++] = j + 1; }
+      if (y > 0 && on[j - w] && !label[j - w]) { label[j - w] = id; stack[top++] = j - w; }
+      if (y < h - 1 && on[j + w] && !label[j + w]) { label[j + w] = id; stack[top++] = j + w; }
+    }
+    sizes.push(size);
+  }
+  const biggest = Math.max(0, ...sizes), minPx = Math.max(8, biggest * 0.006);
+  for (let i = 0; i < N; i++) if (on[i] && sizes[label[i]] < minPx) on[i] = 0;
+
+  // if "ink" covers most of the picture, the guess flipped (light text on dark paper)
+  let count = 0; for (let i = 0; i < N; i++) count += on[i];
+  if (!count) return null;
+  if (count > N * 0.6) { for (let i = 0; i < N; i++) on[i] ^= 1; }
+
+  const out = mk(w, h), oc = out.getContext('2d', { willReadFrequently: true });
+  const img = oc.createImageData(w, h);
+  for (let i = 0; i < N; i++) if (on[i]) img.data[i * 4 + 3] = 255;
+  oc.putImageData(img, 0, 0);
+  const box = inkBox(oc, w, h);
+  return box ? { cv: out, box } : null;
+}
+
 function drawShapeToMask() {
   const c = mask.getContext('2d');
   c.clearRect(0, 0, W, H);
   if (shapeImg) {
-    // fit image into the canvas, then keep only "ink" pixels
-    const s = Math.min(W * 0.92 / shapeImg.width, H * 0.92 / shapeImg.height);
-    const w = shapeImg.width * s, h = shapeImg.height * s;
-    const o = tmp.getContext('2d');
-    o.clearRect(0, 0, W, H); o.fillStyle = 'rgba(0,0,0,0)';
-    o.drawImage(shapeImg, (W - w) / 2, (H - h) / 2, w, h);
-    const src = o.getImageData(0, 0, W, H), d = src.data;
-    // background colour = most common corner colour of the fitted image area (or transparent)
-    const ix = Math.floor((W - w) / 2) + 2, iy = Math.floor((H - h) / 2) + 2;
-    const bi = (iy * W + ix) * 4, br = d[bi], bg = d[bi + 1], bb = d[bi + 2];
-    const hasAlpha = d[bi + 3] < 20;
-    const th = +$('thresh').value, out = c.createImageData(W, H);
-    for (let i = 0; i < W * H; i++) {
-      const p = i * 4, a = d[p + 3];
-      let ink;
-      if (a < 20) ink = false;
-      else if (hasAlpha) ink = a > 128;
-      else ink = Math.abs(d[p] - br) + Math.abs(d[p + 1] - bg) + Math.abs(d[p + 2] - bb) > th;
-      if (ink) out.data[p + 3] = 255;
+    const ink = extractInk(shapeImg);
+    if (ink) {
+      const k = Math.min(W * 0.85 / ink.box.w, H * 0.8 / ink.box.h);
+      const dw = ink.box.w * k, dh = ink.box.h * k;
+      c.imageSmoothingEnabled = true; c.imageSmoothingQuality = 'high';
+      c.drawImage(ink.cv, ink.box.x, ink.box.y, ink.box.w, ink.box.h, (W - dw) / 2, (H - dh) / 2, dw, dh);
     }
-    c.putImageData(out, 0, 0);
   } else {
-    c.font = fontCss(100); c.textBaseline = 'alphabetic'; c.textAlign = 'center';
-    const m = c.measureText(text);
-    const w = (m.actualBoundingBoxLeft + m.actualBoundingBoxRight) || 1;
-    const h = (m.actualBoundingBoxAscent + m.actualBoundingBoxDescent) || 1;
-    const size = Math.floor(100 * Math.min(W * 0.85 / w, H * 0.8 / h, 4));
-    c.font = fontCss(size);
-    const mm = c.measureText(text);
-    const y = H / 2 + (mm.actualBoundingBoxAscent - mm.actualBoundingBoxDescent) / 2;
-    c.fillStyle = '#000'; c.fillText(text, W / 2, y);
+    // Font metrics are unreliable for Devanagari conjuncts (reph, matras, stacked
+    // letters), so draw on a large scratch canvas and measure the real ink pixels.
+    const BW = W * 4, BH = H * 4;
+    const big = mk(BW, BH), b = big.getContext('2d', { willReadFrequently: true });
+    const drawBig = size => {
+      b.clearRect(0, 0, BW, BH);
+      b.font = fontCss(size); b.textAlign = 'center'; b.textBaseline = 'middle';
+      b.fillStyle = '#000'; b.fillText(text, BW / 2, BH / 2);
+      return inkBox(b, BW, BH);
+    };
+    let box = drawBig(150);
+    if (box) {
+      const s = Math.min(W * 0.85 / box.w, H * 0.8 / box.h, 4);
+      box = drawBig(Math.max(10, Math.floor(150 * s)));
+    }
+    if (box) {
+      // safety net: if the second pass is still too big, scale it down to fit
+      const k = Math.min(1, W * 0.9 / box.w, H * 0.88 / box.h);
+      const dw = box.w * k, dh = box.h * k;
+      c.drawImage(big, box.x, box.y, box.w, box.h, (W - dw) / 2, (H - dh) / 2, dw, dh);
+    }
   }
 }
 
@@ -591,16 +757,17 @@ function drawPhoto() {
   stamps.forEach(m => drawStamp(pctx, m));
   updateCount();
 }
-$('file').onchange = e => {
-  const f = e.target.files[0]; if (!f) return;
+function loadImageFile(f, cb) {
   const im = new Image();
-  im.onload = () => {
-    const max = 1400, s = Math.min(1, max / Math.max(im.width, im.height));
-    photo.width = Math.round(im.width * s); photo.height = Math.round(im.height * s);
-    img = im; stamps = []; grid = null; drawPhoto(); URL.revokeObjectURL(im.src);
-  };
+  im.onload = () => cb(im);
   im.src = URL.createObjectURL(f);
-};
+}
+function setPhoto(im) {
+  const max = 1400, s = Math.min(1, max / Math.max(im.width, im.height));
+  photo.width = Math.round(im.width * s); photo.height = Math.round(im.height * s);
+  img = im; stamps = []; grid = null; drawPhoto();
+}
+$('file').onchange = e => { const f = e.target.files[0]; if (f) loadImageFile(f, setPhoto); e.target.value = ''; };
 // drag stamps
 const ppos = e => { const r = photo.getBoundingClientRect(); return { x: (e.clientX - r.left) * photo.width / r.width, y: (e.clientY - r.top) * photo.height / r.height }; };
 photo.addEventListener('pointerdown', e => {
@@ -636,19 +803,69 @@ $('print').onclick = () => window.print();
 // ---- controls ----
 PRESETS.forEach(p => { const b = document.createElement('button'); b.textContent = p; b.onclick = () => setText(p); $('presets').appendChild(b); });
 function setText(t) {
-  if (busy || !t.trim()) return; shapeImg = null; text = t.trim(); markPreset(); resetTrace();
+  if (busy || !t.trim()) return; shapeImg = null; $('imgTools').hidden = true; $('wordFile').value = ''; text = t.trim(); markPreset(); resetTrace();
 }
 function markPreset() {
   document.querySelectorAll('#presets button').forEach(b => b.classList.toggle('on', !shapeImg && b.textContent === text));
 }
 markPreset();
-$('wordFile').onchange = e => {
-  const f = e.target.files[0]; if (!f || busy) return;
-  const im = new Image();
-  im.onload = () => { shapeImg = im; markPreset(); resetTrace(); };
-  im.src = URL.createObjectURL(f);
+function setWordImage(im) {
+  if (busy) return;
+  shapeImg = im; $('imgTools').hidden = false; markPreset(); resetTrace();
+  if (!maskCount) $('msg').textContent = 'No writing found — try raising Ink sensitivity or a clearer photo.';
+}
+$('wordFile').onchange = e => { const f = e.target.files[0]; if (f && !busy) loadImageFile(f, setWordImage); e.target.value = ''; };
+
+// ---- camera ----
+// Live in-app camera (getUserMedia). Needs https:// or localhost. If it isn't
+// available or permission is refused, falls back to the phone's own camera app.
+let camStream = null, camFacing = 'environment', camCb = null;
+function stopCamera() { if (camStream) camStream.getTracks().forEach(t => t.stop()); camStream = null; }
+async function startCamera() {
+  stopCamera();
+  camStream = await navigator.mediaDevices.getUserMedia({
+    video: { facingMode: { ideal: camFacing }, width: { ideal: 1920 }, height: { ideal: 1440 } }, audio: false });
+  const v = $('camVideo'); v.srcObject = camStream;
+  const s = camStream.getVideoTracks()[0].getSettings();
+  v.classList.toggle('mirror', (s.facingMode || camFacing) === 'user');
+  await v.play().catch(() => {});
+}
+function cameraFallback(cb) {
+  const inp = $('camFallback');
+  inp.onchange = e => { const f = e.target.files[0]; if (f) loadImageFile(f, cb); inp.value = ''; };
+  inp.click();
+}
+async function openCamera(cb, title, guide) {
+  if (busy) return;
+  camCb = cb;
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia || !window.isSecureContext) return cameraFallback(cb);
+  $('camTitle').textContent = title; $('camGuide').hidden = !guide;
+  $('cam').hidden = false;
+  try { await startCamera(); }
+  catch (err) {
+    $('cam').hidden = true; stopCamera();
+    $('msg').textContent = 'Camera not available here — opening your device camera instead.';
+    cameraFallback(cb);
+  }
+}
+function closeCamera() { stopCamera(); $('cam').hidden = true; }
+$('camShot').onclick = () => {
+  const v = $('camVideo'); if (!v.videoWidth) return;
+  const c = mk(v.videoWidth, v.videoHeight); c.getContext('2d').drawImage(v, 0, 0);
+  const cb = camCb; closeCamera();
+  const im = new Image(); im.onload = () => cb && cb(im); im.src = c.toDataURL('image/jpeg', 0.92);
 };
+$('camFlip').onclick = async () => {
+  camFacing = camFacing === 'environment' ? 'user' : 'environment';
+  try { await startCamera(); } catch { camFacing = camFacing === 'environment' ? 'user' : 'environment'; }
+};
+$('camClose').onclick = closeCamera;
+$('cam').addEventListener('click', e => { if (e.target === $('cam')) closeCamera(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('cam').hidden) closeCamera(); });
+$('camWord').onclick = () => openCamera(setWordImage, 'Snap the written mantra', true);
+$('camPhoto').onclick = () => openCamera(setPhoto, 'Take your photo', false);
 $('thresh').onchange = () => { if (!busy && shapeImg) resetTrace(); };
+$('backToText').onclick = () => setText(text);
 $('useCustom').onclick = () => setText($('custom').value);
 $('clear').onclick = () => { if (!busy) resetTrace(); };
 $('font').onchange = $('style').onchange = () => { if (!busy) resetTrace(); };
