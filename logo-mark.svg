@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Likhit Japa logo">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="40%" r="65%">
+      <stop offset="0" stop-color="#7A2A24"/>
+      <stop offset="1" stop-color="#4A1616"/>
+    </radialGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#F1D58A"/>
+      <stop offset=".5" stop-color="#C9A24B"/>
+      <stop offset="1" stop-color="#E7C673"/>
+    </linearGradient>
+    <linearGradient id="petal" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFF6E6"/>
+      <stop offset="1" stop-color="#F1DDBD"/>
+    </linearGradient>
+  </defs>
+
+  <!-- badge -->
+  <circle cx="256" cy="256" r="248" fill="url(#bg)"/>
+  <circle cx="256" cy="256" r="232" fill="none" stroke="url(#gold)" stroke-width="3" opacity=".55"/>
+
+  <!-- mala: 54 beads + guru bead -->
+  <g fill="url(#gold)"><circle cx="232.3" cy="458.6" r="6.2"/><circle cx="209.0" cy="454.5" r="6.2"/><circle cx="186.2" cy="447.7" r="6.2"/><circle cx="164.4" cy="438.3" r="6.2"/><circle cx="143.9" cy="426.4" r="6.2"/><circle cx="124.9" cy="412.3" r="6.2"/><circle cx="107.6" cy="396.0" r="6.2"/><circle cx="92.4" cy="377.8" r="6.2"/><circle cx="79.3" cy="358.0" r="6.2"/><circle cx="68.7" cy="336.8" r="6.2"/><circle cx="60.6" cy="314.5" r="6.2"/><circle cx="55.1" cy="291.4" r="6.2"/><circle cx="52.3" cy="267.9" r="6.2"/><circle cx="52.3" cy="244.1" r="6.2"/><circle cx="55.1" cy="220.6" r="6.2"/><circle cx="60.6" cy="197.5" r="6.2"/><circle cx="68.7" cy="175.2" r="6.2"/><circle cx="79.3" cy="154.0" r="6.2"/><circle cx="92.4" cy="134.2" r="6.2"/><circle cx="107.6" cy="116.0" r="6.2"/><circle cx="124.9" cy="99.7" r="6.2"/><circle cx="143.9" cy="85.6" r="6.2"/><circle cx="164.4" cy="73.7" r="6.2"/><circle cx="186.2" cy="64.3" r="6.2"/><circle cx="209.0" cy="57.5" r="6.2"/><circle cx="232.3" cy="53.4" r="6.2"/><circle cx="256.0" cy="52.0" r="6.2"/><circle cx="279.7" cy="53.4" r="6.2"/><circle cx="303.0" cy="57.5" r="6.2"/><circle cx="325.8" cy="64.3" r="6.2"/><circle cx="347.6" cy="73.7" r="6.2"/><circle cx="368.1" cy="85.6" r="6.2"/><circle cx="387.1" cy="99.7" r="6.2"/><circle cx="404.4" cy="116.0" r="6.2"/><circle cx="419.6" cy="134.2" r="6.2"/><circle cx="432.7" cy="154.0" r="6.2"/><circle cx="443.3" cy="175.2" r="6.2"/><circle cx="451.4" cy="197.5" r="6.2"/><circle cx="456.9" cy="220.6" r="6.2"/><circle cx="459.7" cy="244.1" r="6.2"/><circle cx="459.7" cy="267.9" r="6.2"/><circle cx="456.9" cy="291.4" r="6.2"/><circle cx="451.4" cy="314.5" r="6.2"/><circle cx="443.3" cy="336.8" r="6.2"/><circle cx="432.7" cy="358.0" r="6.2"/><circle cx="419.6" cy="377.8" r="6.2"/><circle cx="404.4" cy="396.0" r="6.2"/><circle cx="387.1" cy="412.3" r="6.2"/><circle cx="368.1" cy="426.4" r="6.2"/><circle cx="347.6" cy="438.3" r="6.2"/><circle cx="325.8" cy="447.7" r="6.2"/><circle cx="303.0" cy="454.5" r="6.2"/><circle cx="279.7" cy="458.6" r="6.2"/><circle cx="256" cy="462" r="11"/></g>
+
+  <!-- lotus -->
+  <g transform="translate(256 338)">
+    <!-- outer petals -->
+    <path d="M0 0 C-60 -6 -128 -44 -150 -92 C-96 -100 -38 -70 0 -8 Z" fill="url(#petal)" opacity=".9"/>
+    <path d="M0 0 C60 -6 128 -44 150 -92 C96 -100 38 -70 0 -8 Z" fill="url(#petal)" opacity=".9"/>
+    <!-- side petals -->
+    <path d="M0 0 C-50 -30 -84 -92 -74 -150 C-30 -122 -6 -66 0 -6 Z" fill="url(#petal)"/>
+    <path d="M0 0 C50 -30 84 -92 74 -150 C30 -122 6 -66 0 -6 Z" fill="url(#petal)"/>
+    <!-- centre petal: dashed outline, half traced in red -->
+    <path d="M0 4 C-46 -46 -48 -128 0 -186 C48 -128 46 -46 0 4 Z" fill="#FFFBF3"/>
+    <path d="M0 4 C-46 -46 -48 -128 0 -186 C48 -128 46 -46 0 4 Z" fill="none"
+          stroke="#8A6A55" stroke-width="5" stroke-dasharray="12 10" stroke-linecap="round"/>
+    <path d="M0 4 C-46 -46 -48 -128 0 -186" fill="none" stroke="#D32F2F" stroke-width="14" stroke-linecap="round"/>
+    <!-- pen nib finishing the stroke -->
+    <g transform="translate(0 -186) rotate(32) scale(.85)">
+      <path d="M0 -6 L10 -40 L-10 -40 Z" fill="url(#gold)"/>
+      <rect x="-10" y="-74" width="20" height="34" rx="4" fill="url(#gold)"/>
+    </g>
+    <!-- bindu -->
+    <circle cx="0" cy="-96" r="11" fill="#D32F2F"/>
+    <!-- base line -->
+    <path d="M-122 22 H122" stroke="#D9B862" stroke-width="6" stroke-linecap="round"/>
+    <path d="M-86 48 Q-43 36 0 48 T86 48" fill="none" stroke="#D9B862" stroke-width="4" stroke-linecap="round" opacity=".75"/>
+    <path d="M-50 70 Q-25 62 0 70 T50 70" fill="none" stroke="#D9B862" stroke-width="3.5" stroke-linecap="round" opacity=".5"/>
+  </g>
+
+</svg>
