@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="sa">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#5A1E1E">
+<title>Shreem – Trace &amp; Place Sanskrit Letters</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@400;500;600&family=Noto+Sans+Devanagari:wght@400;600&family=Noto+Serif+Devanagari:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink:#3B2A24; --muted:#8A776C; --line:#EADFD3;
+    --bg:#FBF6EF; --card:#FFFDF9; --sand:#F4EADC;
+    --maroon:#5A1E1E; --red:#C62828; --saffron:#E08A2E; --gold:#C9A24B;
+    --radius:18px; --shadow:0 1px 2px rgba(90,30,30,.05), 0 10px 30px -12px rgba(90,30,30,.18);
+  }
+  * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html { -webkit-text-size-adjust:100%; }
+  body {
+    margin:0; font-family:'Inter',system-ui,-apple-system,'Segoe UI',sans-serif; color:var(--ink);
+    background:
+      radial-gradient(1200px 500px at 50% -200px, #F3E2CC 0%, transparent 70%),
+      var(--bg);
+    min-height:100vh; line-height:1.45;
+  }
+
+  /* ---------- header ---------- */
+  header {
+    text-align:center; padding:calc(22px + env(safe-area-inset-top)) 16px 10px;
+  }
+  .mark { width:46px; height:46px; display:block; margin:0 auto 6px; }
+  header h1 {
+    margin:0; font-family:'Cormorant Garamond',serif; font-weight:700;
+    font-size:clamp(26px,5vw,36px); color:var(--maroon); letter-spacing:.3px;
+  }
+  header p { margin:2px 0 0; color:var(--muted); font-size:14px; }
+  .divider { width:120px; height:1px; margin:14px auto 0;
+    background:linear-gradient(90deg,transparent,var(--gold),transparent); }
+
+  /* ---------- layout ---------- */
+  main {
+    display:grid; gap:18px; padding:16px; max-width:1240px; margin:0 auto;
+    grid-template-columns:1fr;
+    padding-bottom:calc(24px + env(safe-area-inset-bottom));
+  }
+  @media (min-width:960px) { main { grid-template-columns:1fr 1fr; align-items:start; padding:20px 24px 40px; } }
+
+  section.card {
+    background:var(--card); border:1px solid var(--line); border-radius:var(--radius);
+    box-shadow:var(--shadow); padding:18px; min-width:0;
+  }
+  .step-head { display:flex; align-items:center; gap:10px; margin-bottom:14px; }
+  .step-num {
+    flex:none; width:30px; height:30px; border-radius:50%; display:grid; place-items:center;
+    background:var(--maroon); color:#F7E7CF; font-family:'Cormorant Garamond',serif; font-weight:700; font-size:18px;
+  }
+  .step-head h2 { margin:0; font-family:'Cormorant Garamond',serif; font-size:22px; font-weight:600; color:var(--maroon); }
+  .step-head small { display:block; color:var(--muted); font-size:12.5px; font-family:'Inter',sans-serif; }
+
+  .row { display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin-bottom:12px; }
+  .field-label { font-size:12px; font-weight:600; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); margin:4px 0 8px; }
+
+  /* ---------- mantra chips ---------- */
+  .presets {
+    display:flex; gap:8px; overflow-x:auto; padding:2px 2px 8px; margin:0 -2px 10px;
+    scroll-snap-type:x proximity; scrollbar-width:thin;
+  }
+  .presets button {
+    flex:none; scroll-snap-align:start;
+    font-family:'Noto Serif Devanagari','Mangal',serif; font-size:22px; line-height:1;
+    min-width:56px; height:52px; padding:0 14px; border-radius:14px;
+    background:var(--sand); border:1px solid transparent; color:var(--maroon);
+  }
+  .presets button.on { background:var(--maroon); color:#FBE9D0; box-shadow:0 6px 16px -8px var(--maroon); }
+
+  /* ---------- controls ---------- */
+  button, select, input[type=text], input[type=number], .filebtn {
+    font:inherit; font-size:14px; color:var(--ink);
+    min-height:44px; padding:0 14px; border-radius:12px;
+    border:1px solid var(--line); background:#fff; cursor:pointer;
+    transition:background .15s, border-color .15s, transform .05s;
+  }
+  button:active, .filebtn:active { transform:scale(.98); }
+  button:hover, .filebtn:hover { border-color:#D9C6B2; background:#FFFBF5; }
+  button.primary { background:var(--maroon); border-color:var(--maroon); color:#FBE9D0; font-weight:600; }
+  button.primary:hover { background:#6B2626; }
+  button.ghost { background:transparent; }
+  input[type=text], input[type=number] { cursor:text; }
+  input[type=text] { font-family:'Noto Sans Devanagari','Mangal',sans-serif; font-size:18px; flex:1 1 160px; min-width:0; }
+  input:focus-visible, select:focus-visible, button:focus-visible, .filebtn:focus-within {
+    outline:2px solid var(--saffron); outline-offset:2px;
+  }
+  select { appearance:none; padding-right:34px;
+    background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238A776C' stroke-width='1.6' fill='none'/%3E%3C/svg%3E") no-repeat right 12px center; }
+  input[type=range] { accent-color:var(--maroon); width:120px; }
+  input[type=checkbox] { accent-color:var(--maroon); width:18px; height:18px; }
+  .filebtn { display:inline-flex; align-items:center; gap:8px; position:relative; overflow:hidden; }
+  .filebtn input { position:absolute; inset:0; opacity:0; cursor:pointer; }
+  label.inline { display:inline-flex; align-items:center; gap:8px; font-size:13.5px; color:var(--ink); }
+  .stack { display:flex; flex-direction:column; gap:6px; font-size:13px; color:var(--muted); }
+
+  /* ---------- more options ---------- */
+  details.more {
+    border:1px solid var(--line); border-radius:14px; background:#FFFBF5; margin-bottom:14px;
+  }
+  details.more summary {
+    list-style:none; cursor:pointer; padding:12px 14px; font-size:14px; font-weight:500;
+    display:flex; justify-content:space-between; align-items:center; min-height:44px;
+  }
+  details.more summary::-webkit-details-marker { display:none; }
+  details.more summary::after { content:'+'; font-size:20px; color:var(--muted); transition:transform .2s; }
+  details.more[open] summary::after { transform:rotate(45deg); }
+  .more-body { padding:4px 14px 14px; display:grid; gap:14px; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); }
+  .more-body .full { grid-column:1/-1; }
+
+  /* ---------- canvases ---------- */
+  canvas { max-width:100%; height:auto; display:block; touch-action:none; }
+  .trace-wrap {
+    position:relative; border-radius:16px; padding:6px;
+    background:linear-gradient(#fff,#fff) padding-box, linear-gradient(135deg,#E9D3B4,#F6EBDD,#E2C49C) border-box;
+    border:1px solid transparent;
+  }
+  #trace { width:100%; border-radius:12px; background:#fff; }
+  .photo-wrap { border-radius:16px; overflow:hidden; background:var(--sand); border:1px solid var(--line); }
+  #photo { width:100%; background:#fff; }
+
+  .bar { height:6px; background:var(--sand); border-radius:6px; overflow:hidden; margin-top:12px; }
+  .bar > div { height:100%; width:0; background:linear-gradient(90deg,var(--saffron),var(--red)); transition:width .2s; border-radius:6px; }
+  #msg { font-size:13.5px; color:var(--muted); flex:1 1 200px; }
+
+  /* ---------- count / mala ---------- */
+  .counter {
+    display:flex; align-items:center; gap:14px; padding:12px 14px; margin-bottom:14px;
+    border-radius:14px; background:linear-gradient(135deg,#FFF6E9,#FBEEDD); border:1px solid #F0DFC6;
+  }
+  .counter .big { font-family:'Cormorant Garamond',serif; font-size:32px; font-weight:700; color:var(--maroon); line-height:1; white-space:nowrap; }
+  .counter .meta { flex:1; min-width:0; }
+  .counter .meta small { color:var(--muted); font-size:12px; }
+  .mala { height:8px; border-radius:8px; background:rgba(90,30,30,.08); overflow:hidden; margin-top:6px; }
+  .mala > div { height:100%; width:0; background:linear-gradient(90deg,var(--gold),var(--saffron)); transition:width .4s; }
+  .counter input[type=number] { width:84px; text-align:center; font-weight:600; }
+
+  .actions { display:grid; grid-template-columns:repeat(2,1fr); gap:10px; margin-top:14px; }
+  @media (min-width:520px) { .actions { grid-template-columns:repeat(4,1fr); } }
+  .actions button { width:100%; }
+  .tip { font-size:12.5px; color:var(--muted); margin-top:10px; text-align:center; }
+
+  footer { text-align:center; color:var(--muted); font-size:12px; padding:0 16px calc(24px + env(safe-area-inset-bottom)); }
+
+  #fx { position:fixed; inset:0; width:100vw; height:100vh; max-width:none; pointer-events:none; z-index:10; background:transparent; border:none; border-radius:0; }
+
+  @media (max-width:520px) {
+    main { padding:12px; gap:14px; }
+    section.card { padding:14px; border-radius:16px; }
+    input[type=range] { width:100%; }
+  }
+  @media print {
+    header, footer, section.tracer, .row, .bar, .counter, .actions, .tip, #fx { display:none !important; }
+    body { background:#fff; } main { padding:0; display:block; }
+    section.card { box-shadow:none; padding:0; border:none; }
+    .photo-wrap { border:none; } #photo { width:100%; }
+    @page { margin:10mm; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <svg class="mark" viewBox="0 0 64 64" aria-hidden="true">
+    <g fill="none" stroke="#C9A24B" stroke-width="1.6">
+      <circle cx="32" cy="32" r="29" opacity=".5"/>
+      <path d="M32 12c6 7 6 15 0 22-6-7-6-15 0-22z" fill="#F4E3C6"/>
+      <path d="M32 34c-5-6-13-8-20-6 2 7 9 12 20 12M32 34c5-6 13-8 20-6-2 7-9 12-20 12" fill="#FBEFDD"/>
+      <path d="M18 46h28" stroke="#5A1E1E" stroke-linecap="round"/>
+    </g>
+    <circle cx="32" cy="24" r="2.4" fill="#C62828"/>
+  </svg>
+  <h1>Shreem Likhit Japa</h1>
+  <p>Trace each sacred letter with intention, then offer it onto your photo.</p>
+  <div class="divider"></div>
+</header>
+
+<main>
+  <section class="card tracer">
+    <div class="step-head">
+      <span class="step-num">1</span>
+      <h2>Choose &amp; trace<small>Tap a mantra, type your own, or upload a word image</small></h2>
+    </div>
+
+    <div class="presets" id="presets" role="group" aria-label="Mantras"></div>
+
+    <div class="row">
+      <input type="text" id="custom" placeholder="Type any text (Devanagari)" aria-label="Custom text">
+      <button id="useCustom" class="primary">Use</button>
+    </div>
+
+    <details class="more">
+      <summary>Letter style, image &amp; sound</summary>
+      <div class="more-body">
+        <label class="stack">Font
+          <select id="font">
+            <option value="'Noto Sans Devanagari'">Noto Sans</option>
+            <option value="'Noto Serif Devanagari'">Noto Serif</option>
+            <option value="Mangal">Mangal</option>
+            <option value="'Nirmala UI'">Nirmala UI</option>
+            <option value="'Arial Unicode MS'">Arial Unicode</option>
+            <option value="serif">Generic serif</option>
+          </select>
+        </label>
+        <label class="stack">Outline
+          <select id="style">
+            <option value="solid">Solid</option>
+            <option value="dotted">Dotted</option>
+            <option value="dashed">Dashed</option>
+          </select>
+        </label>
+        <label class="stack">Pen size <input type="range" id="pen" min="8" max="40" value="20"></label>
+        <div class="stack full">Word image (any colour on a plain or transparent background)
+          <div class="row" style="margin:0">
+            <label class="filebtn">🖼️ Upload word image<input type="file" id="wordFile" accept="image/*"></label>
+            <label class="inline">Sensitivity <input type="range" id="thresh" min="20" max="200" value="80"></label>
+          </div>
+        </div>
+        <div class="stack full">Win sound
+          <div class="row" style="margin:0">
+            <label class="inline"><input type="checkbox" id="sound" checked> On</label>
+            <label class="inline">Volume <input type="range" id="vol" min="0" max="100" value="70"></label>
+            <label class="filebtn">🎵 Custom sound<input type="file" id="soundFile" accept="audio/*"></label>
+            <button id="testSound" class="ghost">▶ Test</button>
+          </div>
+        </div>
+      </div>
+    </details>
+
+    <div class="trace-wrap"><canvas id="trace" width="800" height="420"></canvas></div>
+    <div class="bar"><div id="progress"></div></div>
+    <div class="row" style="margin:12px 0 0">
+      <span id="msg"></span>
+      <button id="clear" class="ghost">↺ Clear trace</button>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="step-head">
+      <span class="step-num">2</span>
+      <h2>Your photo<small>Each completed letter is placed here</small></h2>
+    </div>
+
+    <div class="counter">
+      <div class="big" id="count">0 / 108</div>
+      <div class="meta">
+        <small>Japa count · set your repetitions →</small>
+        <div class="mala"><div id="malaFill"></div></div>
+      </div>
+      <input type="number" id="target" min="1" max="1000" value="108" aria-label="Repeat count">
+    </div>
+
+    <div class="row">
+      <label class="filebtn primary" style="background:var(--maroon);color:#FBE9D0;border-color:var(--maroon);font-weight:600">📷 Upload photo<input type="file" id="file" accept="image/*"></label>
+    </div>
+
+    <div class="photo-wrap"><canvas id="photo" width="900" height="600"></canvas></div>
+
+    <div class="actions">
+      <button id="undo">↶ Undo</button>
+      <button id="clearAll">Remove all</button>
+      <button id="save" class="primary">⬇ Save PNG</button>
+      <button id="print" class="primary">🖨 Print</button>
+    </div>
+    <div class="tip">Drag a placed letter to move it · scroll over it to resize (desktop)</div>
+  </section>
+</main>
+<footer>Trace slowly, with breath and intention. 🙏</footer>
+<canvas id="fx"></canvas>
+
+<script>
+const PRESETS = ['श्रीं','ह्रीं','क्लीं','क्लौं','ह्सौं','क्ष्रौं','श्रीः','र्ष्क्ष्रीं','ॐ'];
+const COVER_TARGET = 0.85;   // fraction of glyph area that must be traced
+const RED = '#D32F2F';
+
+const $ = id => document.getElementById(id);
+const trace = $('trace'), tctx = trace.getContext('2d', { willReadFrequently: true });
+const photo = $('photo'), pctx = photo.getContext('2d');
+const fx = $('fx'), fctx = fx.getContext('2d');
+const W = trace.width, H = trace.height;
+
+let text = PRESETS[0], fontSize = 200, textY = 210, done = false, busy = false;
+let img = null, stamps = [], drag = null;
+
+// offscreen layers
+const mk = (w, h) => { const c = document.createElement('canvas'); c.width = w; c.height = h; return c; };
+const mask = mk(W, H), paint = mk(W, H), tmp = mk(W, H);
+let maskAlpha = null, maskCount = 0;
+
+const fontCss = size => `${size}px ${$('font').value}, 'Noto Sans Devanagari', 'Mangal', sans-serif`;
+
+let shapeImg = null;     // uploaded word image (null = use typed text)
+let bbox = { x: 0, y: 0, w: W, h: H };
+const outline = mk(W, H);
+
+function drawShapeToMask() {
+  const c = mask.getContext('2d');
+  c.clearRect(0, 0, W, H);
+  if (shapeImg) {
+    // fit image into the canvas, then keep only "ink" pixels
+    const s = Math.min(W * 0.92 / shapeImg.width, H * 0.92 / shapeImg.height);
+    const w = shapeImg.width * s, h = shapeImg.height * s;
+    const o = tmp.getContext('2d');
+    o.clearRect(0, 0, W, H); o.fillStyle = 'rgba(0,0,0,0)';
+    o.drawImage(shapeImg, (W - w) / 2, (H - h) / 2, w, h);
+    const src = o.getImageData(0, 0, W, H), d = src.data;
+    // background colour = most common corner colour of the fitted image area (or transparent)
+    const ix = Math.floor((W - w) / 2) + 2, iy = Math.floor((H - h) / 2) + 2;
+    const bi = (iy * W + ix) * 4, br = d[bi], bg = d[bi + 1], bb = d[bi + 2];
+    const hasAlpha = d[bi + 3] < 20;
+    const th = +$('thresh').value, out = c.createImageData(W, H);
+    for (let i = 0; i < W * H; i++) {
+      const p = i * 4, a = d[p + 3];
+      let ink;
+      if (a < 20) ink = false;
+      else if (hasAlpha) ink = a > 128;
+      else ink = Math.abs(d[p] - br) + Math.abs(d[p + 1] - bg) + Math.abs(d[p + 2] - bb) > th;
+      if (ink) out.data[p + 3] = 255;
+    }
+    c.putImageData(out, 0, 0);
+  } else {
+    c.font = fontCss(100); c.textBaseline = 'alphabetic'; c.textAlign = 'center';
+    const m = c.measureText(text);
+    const w = (m.actualBoundingBoxLeft + m.actualBoundingBoxRight) || 1;
+    const h = (m.actualBoundingBoxAscent + m.actualBoundingBoxDescent) || 1;
+    const size = Math.floor(100 * Math.min(W * 0.85 / w, H * 0.8 / h, 4));
+    c.font = fontCss(size);
+    const mm = c.measureText(text);
+    const y = H / 2 + (mm.actualBoundingBoxAscent - mm.actualBoundingBoxDescent) / 2;
+    c.fillStyle = '#000'; c.fillText(text, W / 2, y);
+  }
+}
+
+function buildMask() {
+  drawShapeToMask();
+  const d = mask.getContext('2d').getImageData(0, 0, W, H).data;
+  maskAlpha = new Uint8Array(W * H); maskCount = 0;
+  let x0 = W, y0 = H, x1 = 0, y1 = 0;
+  for (let i = 0; i < W * H; i++) if (d[i * 4 + 3] > 128) {
+    maskAlpha[i] = 1; maskCount++;
+    const x = i % W, y = (i / W) | 0;
+    if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y;
+  }
+  bbox = maskCount ? { x: x0, y: y0, w: x1 - x0 + 1, h: y1 - y0 + 1 } : { x: 0, y: 0, w: W, h: H };
+  buildOutline();
+}
+
+// outline = shape pixels that touch the outside (inner edge, ~2px), styled solid/dotted/dashed
+function buildOutline() {
+  const style = $('style').value, c = outline.getContext('2d');
+  const out = c.createImageData(W, H), o = out.data, R = 2;
+  for (let y = R; y < H - R; y++) for (let x = R; x < W - R; x++) {
+    const i = y * W + x;
+    if (!maskAlpha[i]) continue;
+    if (maskAlpha[i - R] && maskAlpha[i + R] && maskAlpha[i - R * W] && maskAlpha[i + R * W]) continue;
+    if (style === 'dotted' && (((x >> 2) + (y >> 2)) % 3)) continue;
+    if (style === 'dashed' && (((x >> 3) + (y >> 3)) % 3 === 0)) continue;
+    o[i * 4 + 3] = 255;
+  }
+  c.putImageData(out, 0, 0);
+}
+
+function resetTrace() {
+  paint.getContext('2d').clearRect(0, 0, W, H);
+  done = false; $('progress').style.width = '0';
+  $('msg').textContent = 'Trace along the outline with mouse, finger or stylus.';
+  buildMask(); render();
+}
+
+// draw `shape` canvas recoloured
+function tint(ctx, src, color) {
+  const t = tmp.getContext('2d');
+  t.globalCompositeOperation = 'source-over'; t.clearRect(0, 0, W, H);
+  t.drawImage(src, 0, 0);
+  t.globalCompositeOperation = 'source-in'; t.fillStyle = color; t.fillRect(0, 0, W, H);
+  t.globalCompositeOperation = 'source-over';
+  ctx.drawImage(tmp, 0, 0);
+}
+
+function render(color) {
+  tctx.clearRect(0, 0, W, H);
+  tint(tctx, mask, color ? RED : 'rgba(211,47,47,.06)');
+  // traced ink, clipped to the shape
+  const t = tmp.getContext('2d');
+  t.globalCompositeOperation = 'source-over'; t.clearRect(0, 0, W, H);
+  t.drawImage(paint, 0, 0);
+  t.globalCompositeOperation = 'destination-in'; t.drawImage(mask, 0, 0);
+  t.globalCompositeOperation = 'source-over';
+  tctx.drawImage(tmp, 0, 0);
+  tint(tctx, outline, color ? '#8e0000' : '#555');
+}
+
+function coverage() {
+  const d = paint.getContext('2d').getImageData(0, 0, W, H).data;
+  let hit = 0;
+  for (let i = 0; i < W * H; i++) if (maskAlpha[i] && d[i * 4 + 3] > 0) hit++;
+  return hit / Math.max(maskCount, 1);
+}
+
+// ---- tracing input ----
+let last = null;
+const pos = e => { const r = trace.getBoundingClientRect(); return { x: (e.clientX - r.left) * W / r.width, y: (e.clientY - r.top) * H / r.height }; };
+trace.addEventListener('pointerdown', e => {
+  if (done || busy) return;
+  trace.setPointerCapture(e.pointerId); last = pos(e); stroke(last, last);
+});
+trace.addEventListener('pointermove', e => { if (last) { const p = pos(e); stroke(last, p); last = p; } });
+['pointerup', 'pointercancel'].forEach(n => trace.addEventListener(n, () => {
+  if (!last) return; last = null; check();
+}));
+function stroke(a, b) {
+  const c = paint.getContext('2d');
+  c.strokeStyle = 'rgba(211,47,47,.55)'; c.lineWidth = +$('pen').value; c.lineCap = 'round';
+  c.beginPath(); c.moveTo(a.x, a.y); c.lineTo(b.x, b.y); c.stroke();
+  render();
+}
+function check() {
+  const cov = coverage();
+  $('progress').style.width = Math.min(100, cov / COVER_TARGET * 100) + '%';
+  if (cov >= COVER_TARGET) complete();
+}
+
+// ---- win sound (Web Audio; no external file needed) ----
+// Browsers block audio until the user interacts with the page, so the
+// AudioContext is created/resumed on the first tap, click or key press.
+let actx = null, customBuf = null;
+function unlockAudio() {
+  if (!actx) { const AC = window.AudioContext || window.webkitAudioContext; if (AC) actx = new AC(); }
+  if (actx && actx.state === 'suspended') actx.resume();
+}
+['pointerdown', 'keydown', 'touchstart'].forEach(n => document.addEventListener(n, unlockAudio, { passive: true }));
+
+function playWin(big) {
+  if (!$('sound').checked) return;
+  unlockAudio(); if (!actx) return;
+  const vol = +$('vol').value / 100;
+  const master = actx.createGain(); master.gain.value = vol; master.connect(actx.destination);
+  if (customBuf) {                        // user's own sound
+    const s = actx.createBufferSource(); s.buffer = customBuf; s.connect(master); s.start();
+    return;
+  }
+  const t = actx.currentTime + 0.03;
+  const note = (f, start, len, type = 'triangle', gain = 0.35) => {
+    const o = actx.createOscillator(), g = actx.createGain();
+    o.type = type; o.frequency.value = f;
+    g.gain.setValueAtTime(0.0001, t + start);
+    g.gain.exponentialRampToValueAtTime(gain, t + start + 0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + start + len);
+    o.connect(g); g.connect(master);
+    o.start(t + start); o.stop(t + start + len + 0.05);
+  };
+  // rising arpeggio C–E–G–C, then a shimmering chord with a bell sparkle
+  const arp = [523.25, 659.25, 783.99, 1046.5];
+  arp.forEach((f, i) => { note(f, i * 0.11, 0.25); note(f * 2, i * 0.11, 0.18, 'sine', 0.08); });
+  const end = arp.length * 0.11;
+  [523.25, 659.25, 783.99, 1046.5].forEach(f => note(f, end, big ? 1.8 : 1.1, 'triangle', 0.18));
+  [2093, 2637, 3136].forEach((f, i) => note(f, end + 0.05 + i * 0.07, 0.6, 'sine', 0.06));
+  if (big) {                              // extra fanfare when the full count is reached
+    [783.99, 1046.5, 1318.5, 1568].forEach((f, i) => note(f, end + 0.5 + i * 0.12, 0.5));
+    [1046.5, 1318.5, 1568, 2093].forEach(f => note(f, end + 1.0, 2.2, 'triangle', 0.15));
+  }
+}
+$('soundFile').onchange = async e => {
+  const f = e.target.files[0]; if (!f) { customBuf = null; return; }
+  unlockAudio(); if (!actx) return;
+  try { customBuf = await actx.decodeAudioData(await f.arrayBuffer()); $('msg').textContent = 'Custom win sound loaded 🎵'; }
+  catch { customBuf = null; $('msg').textContent = 'Could not read that audio file — using the built-in sound.'; }
+};
+$('testSound').onclick = () => playWin(false);
+
+// ---- completion: turn red, fly to photo, party ----
+function complete() {
+  done = true; busy = true; $('msg').textContent = 'Beautiful! ✨';
+  render(true);
+  playWin(stamps.length + 1 === target());
+  const b = bbox;
+  const glyph = mk(b.w, b.h);
+  glyph.getContext('2d').drawImage(trace, b.x, b.y, b.w, b.h, 0, 0, b.w, b.h);
+  // final stamp: plain red shape cropped to its bounds
+  const cv = mk(b.w, b.h);
+  tint(cv.getContext('2d'), mask, RED);   // draws full-size tint into tmp; crop below
+  cv.getContext('2d').clearRect(0, 0, b.w, b.h);
+  cv.getContext('2d').drawImage(tmp, b.x, b.y, b.w, b.h, 0, 0, b.w, b.h);
+  const slot = nextSlot(b.w / b.h);
+  const sw = slot.w, sh = slot.h, spot = { x: slot.x, y: slot.y };
+  const src = trace.getBoundingClientRect(), dst = photo.getBoundingClientRect();
+  const k = src.width / W, dscale = dst.width / photo.width;
+  const dx = dst.left + spot.x * dscale, dy = dst.top + spot.y * dscale;
+  const sx = src.left + (b.x + b.w / 2) * k, sy = src.top + (b.y + b.h / 2) * k;
+  const endScale = sw / b.w * dscale;
+
+  fx.width = innerWidth; fx.height = innerHeight;
+  const t0 = performance.now(), pulse = 600, fly = 900;
+  startConfetti();
+  trace.style.visibility = 'hidden';
+  (function frame(now) {
+    const t = now - t0;
+    fctx.clearRect(0, 0, fx.width, fx.height);
+    let cx, cy, sc, rot = 0;
+    if (t < pulse) {
+      const p = t / pulse;
+      sc = k * (1 + 0.1 * Math.sin(p * Math.PI * 3)); cx = sx; cy = sy;
+      rot = Math.sin(p * Math.PI * 4) * 0.03;
+    } else {
+      const p = Math.min(1, (t - pulse) / fly), e = p * p * (3 - 2 * p);
+      cx = sx + (dx - sx) * e; cy = sy + (dy - sy) * e - Math.sin(p * Math.PI) * 120;
+      sc = k + (endScale - k) * e; rot = Math.sin(p * Math.PI * 2) * 0.15;
+    }
+    fctx.save(); fctx.translate(cx, cy); fctx.rotate(rot); fctx.scale(sc, sc);
+    fctx.drawImage(glyph, -b.w / 2, -b.h / 2); fctx.restore();
+    drawConfetti();
+    if (t < pulse + fly) return requestAnimationFrame(frame);
+    stamps.push({ cv, w: sw, h: sh, x: spot.x, y: spot.y });
+    drawPhoto();
+    trace.style.visibility = 'visible';
+    confettiTick();
+  })(t0);
+}
+
+// ---- confetti (party theme; replace/modify later) ----
+let parts = [];
+function startConfetti() {
+  const cols = ['#D32F2F', '#FFC107', '#FF7043', '#E91E63', '#8BC34A', '#29B6F6', '#AB47BC'];
+  parts = [];
+  for (let i = 0; i < 160; i++) {
+    const side = i % 2;
+    parts.push({ x: side ? innerWidth : 0, y: innerHeight * 0.75,
+      vx: (side ? -1 : 1) * (4 + Math.random() * 9), vy: -(8 + Math.random() * 14),
+      s: 5 + Math.random() * 7, c: cols[i % cols.length], r: Math.random() * 6, vr: (Math.random() - .5) * .4, life: 140 + Math.random() * 60 });
+  }
+}
+function drawConfetti() {
+  for (const p of parts) {
+    p.x += p.vx; p.y += p.vy; p.vy += 0.35; p.vx *= 0.99; p.r += p.vr; p.life--;
+    fctx.save(); fctx.translate(p.x, p.y); fctx.rotate(p.r);
+    fctx.fillStyle = p.c; fctx.fillRect(-p.s / 2, -p.s / 4, p.s, p.s / 2); fctx.restore();
+  }
+  parts = parts.filter(p => p.life > 0 && p.y < innerHeight + 20);
+}
+function confettiTick() {
+  fctx.clearRect(0, 0, fx.width, fx.height); drawConfetti();
+  if (parts.length) requestAnimationFrame(confettiTick);
+  else {
+    busy = false; resetTrace();
+    $('msg').textContent = stamps.length === target()
+      ? `🎉 All ${target()} placed! Download or print your photo.`
+      : 'Placed! Pick another letter or word.';
+  }
+}
+
+// ---- photo canvas ----
+// grid so that `target` words fill the photo; cell size adapts to the count and word shape
+let grid = null;
+const target = () => Math.max(1, Math.min(1000, parseInt($('target').value) || 108));
+function makeGrid(aspect) {
+  const n = target(), pad = 0.9;
+  let best = null;
+  for (let cols = 1; cols <= n; cols++) {
+    const rows = Math.ceil(n / cols), cw = photo.width / cols, ch = photo.height / rows;
+    const w = Math.min(cw, ch * aspect) * pad;
+    if (!best || w > best.w) best = { cols, rows, cw, ch, w };
+  }
+  grid = best;
+}
+function nextSlot(aspect) {
+  if (!grid || !stamps.length) makeGrid(aspect);
+  const i = stamps.length % target(), c = i % grid.cols, r = Math.floor(i / grid.cols);
+  const w = Math.min(grid.cw, grid.ch * aspect) * 0.9;
+  return { w, h: w / aspect, x: (c + 0.5) * grid.cw, y: (r + 0.5) * grid.ch };
+}
+function updateCount() {
+  $('count').textContent = `${stamps.length} / ${target()}`;
+  $('malaFill').style.width = Math.min(100, stamps.length / target() * 100) + '%';
+}
+function drawStamp(c, m) {
+  c.save();
+  c.shadowColor = 'rgba(255,255,255,.95)'; c.shadowBlur = Math.max(3, m.h * 0.06);
+  c.drawImage(m.cv, m.x - m.w / 2, m.y - m.h / 2, m.w, m.h);
+  c.restore();
+}
+function drawPhoto() {
+  pctx.fillStyle = '#fff'; pctx.fillRect(0, 0, photo.width, photo.height);
+  if (img) pctx.drawImage(img, 0, 0, photo.width, photo.height);
+  else { pctx.fillStyle = '#aaa'; pctx.font = '22px sans-serif'; pctx.textAlign = 'center';
+         pctx.fillText('Upload a photo to begin', photo.width / 2, photo.height / 2); }
+  stamps.forEach(m => drawStamp(pctx, m));
+  updateCount();
+}
+$('file').onchange = e => {
+  const f = e.target.files[0]; if (!f) return;
+  const im = new Image();
+  im.onload = () => {
+    const max = 1400, s = Math.min(1, max / Math.max(im.width, im.height));
+    photo.width = Math.round(im.width * s); photo.height = Math.round(im.height * s);
+    img = im; stamps = []; grid = null; drawPhoto(); URL.revokeObjectURL(im.src);
+  };
+  im.src = URL.createObjectURL(f);
+};
+// drag stamps
+const ppos = e => { const r = photo.getBoundingClientRect(); return { x: (e.clientX - r.left) * photo.width / r.width, y: (e.clientY - r.top) * photo.height / r.height }; };
+photo.addEventListener('pointerdown', e => {
+  const p = ppos(e);
+  for (let i = stamps.length - 1; i >= 0; i--) {
+    const m = stamps[i];
+    if (Math.abs(p.x - m.x) < m.w / 2 && Math.abs(p.y - m.y) < m.h / 2) {
+      drag = { m, dx: m.x - p.x, dy: m.y - p.y }; photo.setPointerCapture(e.pointerId); break;
+    }
+  }
+});
+photo.addEventListener('wheel', e => {
+  const p = ppos(e);
+  for (let i = stamps.length - 1; i >= 0; i--) {
+    const m = stamps[i];
+    if (Math.abs(p.x - m.x) < m.w / 2 && Math.abs(p.y - m.y) < m.h / 2) {
+      e.preventDefault();
+      const f = e.deltaY < 0 ? 1.08 : 1 / 1.08;
+      m.w *= f; m.h *= f; drawPhoto(); break;
+    }
+  }
+}, { passive: false });
+photo.addEventListener('pointermove', e => { if (drag) { const p = ppos(e); drag.m.x = p.x + drag.dx; drag.m.y = p.y + drag.dy; drawPhoto(); } });
+photo.addEventListener('pointerup', () => drag = null);
+
+$('target').onchange = () => { grid = null; if (stamps.length && confirm('Changing the count will clear placed words. Continue?')) stamps = []; else if (stamps.length) $('target').value = lastTarget; lastTarget = $('target').value; drawPhoto(); };
+let lastTarget = 108;
+$('undo').onclick = () => { stamps.pop(); drawPhoto(); };
+$('clearAll').onclick = () => { stamps = []; grid = null; drawPhoto(); };
+$('save').onclick = () => { const a = document.createElement('a'); a.download = 'shreem.png'; a.href = photo.toDataURL('image/png'); a.click(); };
+$('print').onclick = () => window.print();
+
+// ---- controls ----
+PRESETS.forEach(p => { const b = document.createElement('button'); b.textContent = p; b.onclick = () => setText(p); $('presets').appendChild(b); });
+function setText(t) {
+  if (busy || !t.trim()) return; shapeImg = null; text = t.trim(); markPreset(); resetTrace();
+}
+function markPreset() {
+  document.querySelectorAll('#presets button').forEach(b => b.classList.toggle('on', !shapeImg && b.textContent === text));
+}
+markPreset();
+$('wordFile').onchange = e => {
+  const f = e.target.files[0]; if (!f || busy) return;
+  const im = new Image();
+  im.onload = () => { shapeImg = im; markPreset(); resetTrace(); };
+  im.src = URL.createObjectURL(f);
+};
+$('thresh').onchange = () => { if (!busy && shapeImg) resetTrace(); };
+$('useCustom').onclick = () => setText($('custom').value);
+$('clear').onclick = () => { if (!busy) resetTrace(); };
+$('font').onchange = $('style').onchange = () => { if (!busy) resetTrace(); };
+
+(document.fonts ? document.fonts.ready : Promise.resolve()).then(() => { resetTrace(); drawPhoto(); });
+</script>
+</body>
+</html>
